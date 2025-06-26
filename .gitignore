@@ -36,3 +36,7 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+src/main/resources/LocalVars.properties
+src/main/resources/chrome-win-114.0.5735.134
+src/main/resources/chrome_chromedriver_137.0.7151.119
