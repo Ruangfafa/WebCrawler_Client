@@ -1,5 +1,8 @@
 package org.ruangfafa;
 
+import org.openqa.selenium.WebDriver;
+import org.ruangfafa.Service.ChromeDriver;
+import org.ruangfafa.Service.Crawlers.SellerCrawler;
 import org.ruangfafa.Service.DatabaseService;
 import org.ruangfafa.Service.Logger;
 
@@ -10,6 +13,7 @@ import static org.ruangfafa.Service.DatabaseService.*;
 
 public class Application {
     private static final Connection DB = DatabaseService.getConnection();
+    private static final WebDriver driver = ChromeDriver.createWebDriver("user1");
     public static void main(String[] args) {
         if (DB == null) return;
         while (true) {
@@ -22,38 +26,38 @@ public class Application {
 
             while (userState == 2 && serverState == 0) {
                 String taskUrl = popUrl(DB);
+                SellerCrawler.craw(driver, taskUrl);
                 if (taskUrl == null) {
                     taskDone(DB);
                     break;
                 }
-                //第二部分爬虫
             }
 
             while (userState == 3 && serverState == 0) {
                 String taskUrl = popUrl(DB);
+                //第三部分爬虫
                 if (taskUrl == null) {
                     taskDone(DB);
                     break;
                 }
-                //第三部分爬虫
             }
 
             while (userState == 4 && serverState == 0) {
                 String taskUrl = popUrl(DB);
+                //第四部分爬虫
                 if (taskUrl == null) {
                     taskDone(DB);
                     break;
                 }
-                //第四部分爬虫
             }
 
             while (userState == 6 && serverState == 0) {
                 String taskUrl = popUrl(DB);
+                //第六部分爬虫
                 if (taskUrl == null) {
                     taskDone(DB);
                     break;
                 }
-                //第六部分爬虫
             }
 
             try {

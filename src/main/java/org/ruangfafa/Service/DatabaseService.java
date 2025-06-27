@@ -1,8 +1,12 @@
 package org.ruangfafa.Service;
 
+import org.ruangfafa.Model.Classificate;
+import org.ruangfafa.Model.Product;
+import org.ruangfafa.Model.ProductTag;
+import org.ruangfafa.Model.Seller;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.SecureRandom;
 import java.sql.*;
 import java.util.*;
 
@@ -96,4 +100,75 @@ public class DatabaseService {
         }
     }
 
+    public static void insertSeller(Connection conn, Seller seller) {
+        String sql = "INSERT INTO ServerDB.Sellers " +
+                "(identifier, name, location, pageType, subscribe, qualityScore, garenteeScore, logisticsScore) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, seller.getIdentifier());
+            stmt.setString(2, seller.getName());
+            stmt.setString(3, seller.getLocation());
+            stmt.setString(4, seller.getPageType());
+            stmt.setString(5, seller.getSubscribe() );
+            stmt.setString(6, seller.getQualityScore());
+            stmt.setString(7, seller.setGarenteeScore());
+            stmt.setString(8, seller.getLogisticsScore() );
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            Logger.log("❌ 插入 Seller 数据失败: " + e.getMessage(), "DatabaseService.java");
+        }
+    }
+
+    public static void insertClassificate(Connection conn, Classificate obj) {
+        String sql = "INSERT INTO ServerDB.Classificate (pageType, identifier, category_pv, cName) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, obj.getPageType());
+            stmt.setString(2, obj.getIdentifier());
+            stmt.setString(3, obj.getCategory_pv());
+            stmt.setString(4, obj.getCName());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            Logger.log("❌ 插入 Classificate 数据失败: " + e.getMessage(), "DatabaseService.java");
+        }
+    }
+
+    public static void insertProductTag(Connection conn, ProductTag obj) {
+        String sql = "INSERT INTO ServerDB.ProductTag (pageType, identifier, id, soldAmount, tag) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, obj.getPageType());
+            stmt.setString(2, obj.getIdentifier());
+            stmt.setString(3, obj.getId());
+            stmt.setString(4, obj.getSoldAmount());
+            stmt.setString(5, obj.getTag());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            Logger.log("❌ 插入 ProductTag 数据失败: " + e.getMessage(), "DatabaseService.java");
+        }
+    }
+
+    public static void insertProduct(Connection conn, Product obj) {
+        String sql = "INSERT INTO ServerDB.Product (pageType, id, skuid, orgnPrice, diskPrice, title, soldAmount365, " +
+                "storageAddress, guarantee, pattern, storageLeft, parameter, patternCom, image, imageSet) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, obj.getPageType());
+            stmt.setString(2, obj.getId());
+            stmt.setString(3, obj.getSkuid());
+            stmt.setString(4, obj.getOrgnPrice());
+            stmt.setString(5, obj.getDiskPrice());
+            stmt.setString(6, obj.getTitle());
+            stmt.setString(7, obj.getSoldAmount365());
+            stmt.setString(8, obj.getStorageAddress());
+            stmt.setString(9, obj.getGuarantee());
+            stmt.setString(10, obj.getPattern());
+            stmt.setString(11, obj.getStorageLeft());
+            stmt.setString(12, obj.getParameter());
+            stmt.setString(13, obj.getPatternCom());
+            stmt.setString(14, obj.getImage());
+            stmt.setString(15, obj.getImageSet());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            Logger.log("❌ 插入 Product 数据失败: " + e.getMessage(), "DatabaseService.java");
+        }
+    }
 }
