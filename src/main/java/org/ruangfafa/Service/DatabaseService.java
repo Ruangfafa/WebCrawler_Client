@@ -23,7 +23,7 @@ public class DatabaseService {
                 URL = props.getProperty("db.url");
                 USER = props.getProperty("db.user");
                 PASSWORD = props.getProperty("db.password");
-                DEDDB = USER.replace("WebCrawler_", "");
+                DEDDB = USER.replace("WebCrawler_Client", "ClientDB_");
             } else {
                 Logger.log("❌ 找不到 LocalVars.properties", WORKDIC);
                 throw new IOException("找不到 LocalVars.properties");
@@ -170,5 +170,18 @@ public class DatabaseService {
         } catch (SQLException e) {
             Logger.log("❌ 插入 Product 数据失败: " + e.getMessage(), "DatabaseService.java");
         }
+    }
+
+    public static int getLoadPageTimeout(Connection conn) {
+        String sql = "SELECT value FROM ServerDB.Config WHERE `key` = 'loadPageTimeout'";
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return Integer.parseInt(rs.getString("value"));
+            }
+        } catch (Exception e) {
+            Logger.log("❌ 获取 loadPageTimeout 失败: " + e.getMessage(), "DatabaseService.java");
+        }
+        return 10; // 默认值（秒）
     }
 }

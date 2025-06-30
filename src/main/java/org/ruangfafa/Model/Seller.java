@@ -4,14 +4,14 @@ public class Seller {
     private String identifier, name, location, pageType, subscribe, qualityScore, garenteeScore, logisticsScore;
 
     public Seller(String identifier, String name, String location, String pageType,
-                  String subscribe, String qualityScore, String securityScore, String logisticsScore) {
+                  String subscribe, String qualityScore, String garenteeScore, String logisticsScore) {
         this.identifier = identifier;
         this.name = name;
         this.location = location;
         this.pageType = pageType;
         this.subscribe = subscribe;
         this.qualityScore = qualityScore;
-        this.garenteeScore = securityScore;
+        this.garenteeScore = garenteeScore;
         this.logisticsScore = logisticsScore;
     }
 

@@ -24,13 +24,14 @@ public class Application {
             }
             int userState = getState(DB,false);
 
+
             while (userState == 2 && serverState == 0) {
                 String taskUrl = popUrl(DB);
-                SellerCrawler.craw(driver, taskUrl);
                 if (taskUrl == null) {
                     taskDone(DB);
                     break;
                 }
+                insertSeller(DB,SellerCrawler.craw(driver, taskUrl, DB));
             }
 
             while (userState == 3 && serverState == 0) {

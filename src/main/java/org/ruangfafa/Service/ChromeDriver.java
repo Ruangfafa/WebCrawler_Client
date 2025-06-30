@@ -3,13 +3,17 @@ package org.ruangfafa.Service;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
+import java.sql.Connection;
 import java.time.Duration;
 import java.util.List;
+import java.util.regex.*;
 
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import static org.ruangfafa.Service.DatabaseService.getLoadPageTimeout;
 
 public class ChromeDriver {
 
@@ -58,10 +62,15 @@ public class ChromeDriver {
         return new org.openqa.selenium.chrome.ChromeDriver(options);
     }
 
-    public static void waitForPageLoad(WebDriver driver, int timeoutSeconds) {
+    public static void waitForPageLoad(WebDriver driver, Connection DB) {
+        int timeoutSeconds = 10;
+        timeoutSeconds = getLoadPageTimeout(DB);
+        try {Thread.sleep(250);} catch (InterruptedException e) {}
         new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds)).until(
                 webDriver -> ((JavascriptExecutor) webDriver)
                         .executeScript("return document.readyState").equals("complete")
         );
+        try {Thread.sleep(250);} catch (InterruptedException e) {}
     }
 }
+
