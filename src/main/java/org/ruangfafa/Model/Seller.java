@@ -67,7 +67,7 @@ public class Seller {
         this.qualityScore = qualityScore;
     }
 
-    public String setGarenteeScore() {
+    public String getGarenteeScore() {
         return garenteeScore;
     }
 

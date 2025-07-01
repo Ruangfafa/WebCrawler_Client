@@ -2,7 +2,9 @@ package org.ruangfafa;
 
 import org.openqa.selenium.WebDriver;
 import org.ruangfafa.Service.ChromeDriver;
+import org.ruangfafa.Service.Crawlers.SellerClassificateCrawler;
 import org.ruangfafa.Service.Crawlers.SellerCrawler;
+import org.ruangfafa.Service.Crawlers.TaskProductsCrawler;
 import org.ruangfafa.Service.DatabaseService;
 import org.ruangfafa.Service.Logger;
 
@@ -41,6 +43,7 @@ public class Application {
                     taskDone(DB);
                     break;
                 }
+                SellerClassificateCrawler.craw(driver, taskUrl, DB);
             }
 
             while (userState == 4 && serverState == 0) {
@@ -50,6 +53,7 @@ public class Application {
                     taskDone(DB);
                     break;
                 }
+                TaskProductsCrawler.craw(driver, taskUrl, DB);
             }
 
             while (userState == 6 && serverState == 0) {

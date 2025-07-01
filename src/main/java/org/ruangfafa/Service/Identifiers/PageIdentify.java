@@ -90,4 +90,15 @@ public class PageIdentify {
         // 未识别出页面类型
         return "";
     }
+
+    public static String classificatePageIdentify(WebDriver driver) {
+        String url = driver.getCurrentUrl();
+        try {
+            if (url.contains(".tmall.com")) {
+                return "tm";
+            }
+        }
+        catch (Exception _) {}
+        return "Error";
+    }
 }

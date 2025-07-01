@@ -1,10 +1,7 @@
 package org.ruangfafa.Model;
 
 public class Classificate {
-    private String pageType;
-    private String identifier;
-    private String category_pv;
-    private String cName;
+    private String pageType, identifier, category_pv, cName;
 
     public Classificate(String pageType, String identifier, String category_pv, String cName) {
         this.pageType = pageType;

@@ -20,26 +20,20 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.ruangfafa.Service.AbnormalProcessing.urlSupervision;
+
 public class SellerCrawler {
+    private static final String WORKDIC = "SellerCrawler.java";
     public static Seller craw(WebDriver driver, String url, Connection DB){
         String identifier = "", name = "", location = "", pageType = "", subscribe = "", qualityScore = "", garenteeScore = "", logisticsScore = "";
         driver.get(url);
         ChromeDriver.waitForPageLoad(driver, DB);
-        while (!url.equals(driver.getCurrentUrl())) {
-            if (driver.getCurrentUrl().contains("login.taobao.com")) {
-                try {
-                    WebElement loginBtn = new WebDriverWait(driver, Duration.ofSeconds(5))
-                            .until(ExpectedConditions.elementToBeClickable(By.cssSelector(".fm-button.fm-submit")));
-                    loginBtn.click();
-                } catch (Exception e) {
-                    Logger.log("⚠️ 登录按钮点击失败: " + e.getMessage(), "LoginHandler.java");
-                }
-            }
-        }
+        urlSupervision(driver,url);
         Matcher matcher;
         Actions actions = new Actions(driver);
         List<WebElement> scoreElements;
-
+        By xpath;
+        int tryOut;
         pageType = PageIdentify.searchPageIdentify(driver);
         switch (pageType) {
             case "tb_c2c_1":
@@ -73,47 +67,83 @@ public class SellerCrawler {
                     logisticsScore = scoreElements.get(2).getText().trim();
                 }
                 break;
-                case "tb_c2c_ice":
-                    name = driver.findElement(By.xpath(".//div[contains(@class, 'shopName--')]")).getText().trim(); //$x(".//div[contains(@class, 'shopName--')]")[0]?.textContent.trim()
-                    matcher = Pattern.compile("shop(\\d+)\\.taobao\\.com").matcher(url);
-                    identifier = matcher.find() ? matcher.group(1) : "N/A";
-                    subscribe = driver.findElement(By.xpath("//div[contains(@class, 'fans--hensgUT0')]")).getText().replace("粉丝", "").trim();
+            case "tb_c2c_ice":
+                name = driver.findElement(By.xpath(".//div[contains(@class, 'shopName--')]")).getText().trim(); //$x(".//div[contains(@class, 'shopName--')]")[0]?.textContent.trim()
+                matcher = Pattern.compile("shop(\\d+)\\.taobao\\.com").matcher(url);
+                identifier = matcher.find() ? matcher.group(1) : "N/A";
+                subscribe = driver.findElement(By.xpath("//div[contains(@class, 'fans--hensgUT0')]")).getText().replace("粉丝", "").trim();
 
-                    List<WebElement> scoreSpans = new ArrayList<>();
-                    for (int i = 0; i < 6; i++) {
-                        try {
-                            actions.moveToElement(driver.findElement(By.xpath("//div[contains(@class,'pannerContainer--')]"))).perform();
-                            scoreSpans = new WebDriverWait(driver, Duration.ofMillis(500))
-                                    .until(ExpectedConditions.visibilityOfAllElementsLocatedBy(
-                                            By.xpath("//span[contains(@class, 'dsrScore')]")
-                                    ));
-                            if (scoreSpans.size() >= 3) break;
-                        } catch (Exception ignored) {}
-                    }
-                    location = qualityScore = logisticsScore = garenteeScore = "N/A";
-                    if (scoreSpans.size() >= 3) {
-                        qualityScore = scoreSpans.get(0).getText().trim();
-                        logisticsScore = scoreSpans.get(1).getText().trim();
-                        garenteeScore = scoreSpans.get(2).getText().trim();
-                    }
-                    break;
-            case "tm": case "tm_global":
+                List<WebElement> scoreSpans = new ArrayList<>();
+                tryOut = 0;
+                while (scoreSpans.size() < 3 && tryOut < 6) {
+                    try {
+                        actions.moveToElement(driver.findElement(By.xpath("//div[contains(@class,'pannerContainer--')]"))).perform();
+                        scoreSpans = new WebDriverWait(driver, Duration.ofMillis(500))
+                                .until(ExpectedConditions.visibilityOfAllElementsLocatedBy(
+                                        By.xpath("//span[contains(@class, 'dsrScore')]")
+                                ));
+                        if (scoreSpans.size() >= 3) break;
+                    } catch (Exception ignored) {}
+                    tryOut++;
+                }
+                location = qualityScore = logisticsScore = garenteeScore = "N/A";
+                if (scoreSpans.size() >= 3) {
+                    qualityScore = scoreSpans.get(0).getText().trim();
+                    logisticsScore = scoreSpans.get(1).getText().trim();
+                    garenteeScore = scoreSpans.get(2).getText().trim();
+                }
+                break;
+            case "tm":
                 name = driver.findElement(By.xpath(".//a[contains(@class, 'slogo-shopname')]/strong")).getText().trim(); //$x(".//a[contains(@class, 'shop-name-link')]")[0]?.textContent.trim()
                 matcher = Pattern.compile("https://([^.]+)\\.tmall\\.com").matcher(url);
                 identifier = matcher.find() ? matcher.group(1) : "N/A";
                 location = "N/A";
-                By xpath = By.xpath("//li[contains(@class,'locus')]//div[contains(@class,'right')]");
+                xpath = By.xpath("//li[contains(@class,'locus')]//div[contains(@class,'right')]");
+                tryOut = 0;
+                while (location.equals("N/A") && tryOut < 18) {
+                    try {
+                        actions.moveToElement(driver.findElement(By.xpath("//i[contains(@class,'icon-triangle')]"))).perform();
+                        System.out.println("1");
+                        location = new WebDriverWait(driver, Duration.ofMillis(500))
+                                .until(ExpectedConditions.visibilityOfElementLocated(xpath)).getText().trim();
+                        break;
+                    } catch (Exception ignored) {
+                        actions.moveByOffset(1000,1000).click().perform();
+                        actions.moveToElement(driver.findElement(By.xpath("//i[contains(@class,'icon-triangle')]"))).click().perform();
+                        Logger.log("⚠️ 正在尝试获取location", WORKDIC);
+                    }
+                    tryOut++;
+                }
+                scoreElements = driver.findElements(
+                    By.xpath("//span[contains(@class, 'shopdsr-score-con')]")
+                );
+                subscribe = qualityScore = garenteeScore = logisticsScore = "N/A";
+                if (scoreElements.size() == 3) {
+                    qualityScore = scoreElements.get(0).getText().trim();
+                    garenteeScore = scoreElements.get(1).getText().trim();
+                    logisticsScore = scoreElements.get(2).getText().trim();
+                }
+                break;
 
-                for (int i = 0; i < 6; i++) {
+            case "tm_global":
+                name = driver.findElement(By.xpath(".//a[contains(@class, 'slogo-shopname')]/strong")).getText().trim(); //$x(".//a[contains(@class, 'shop-name-link')]")[0]?.textContent.trim()
+                matcher = Pattern.compile("https://([^.]+)\\.tmall\\.hk").matcher(url);
+                identifier = matcher.find() ? matcher.group(1) : "N/A";
+                location = "N/A";
+                xpath = By.xpath("//li[contains(@class,'locus')]//div[contains(@class,'right')]");
+
+                tryOut = 0;
+                while (location.equals("N/A") && tryOut < 6) {
                     try {
                         actions.moveToElement(driver.findElement(By.xpath("//div[contains(@class,'main-info')]"))).perform();
                         location = new WebDriverWait(driver, Duration.ofMillis(500))
                                 .until(ExpectedConditions.visibilityOfElementLocated(xpath)).getText().trim();
                         break;
                     } catch (Exception ignored) {}
+                    tryOut++;
                 }
                 scoreElements = driver.findElements(
-                    By.xpath("//span[contains(@class, 'shopdsr-score-con')]")
+                        By.xpath("//span[contains(@class, 'shopdsr-score-con')]")
                 );
                 subscribe = qualityScore = garenteeScore = logisticsScore = "N/A";
                 if (scoreElements.size() == 3) {
