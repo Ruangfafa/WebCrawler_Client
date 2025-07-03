@@ -2,9 +2,7 @@ package org.ruangfafa;
 
 import org.openqa.selenium.WebDriver;
 import org.ruangfafa.Service.ChromeDriver;
-import org.ruangfafa.Service.Crawlers.SellerClassificateCrawler;
-import org.ruangfafa.Service.Crawlers.SellerCrawler;
-import org.ruangfafa.Service.Crawlers.TaskProductsCrawler;
+import org.ruangfafa.Service.Crawlers.*;
 import org.ruangfafa.Service.DatabaseService;
 import org.ruangfafa.Service.Logger;
 
@@ -15,7 +13,7 @@ import static org.ruangfafa.Service.DatabaseService.*;
 
 public class Application {
     private static final Connection DB = DatabaseService.getConnection();
-    private static final WebDriver driver = ChromeDriver.createWebDriver("user1");
+    private static WebDriver driver = ChromeDriver.createWebDriver("user1");
     public static void main(String[] args) {
         if (DB == null) return;
         while (true) {
@@ -63,6 +61,17 @@ public class Application {
                     taskDone(DB);
                     break;
                 }
+                ProductCrawler.craw(driver, taskUrl, DB);
+            }
+
+            while (userState == 7 && serverState == 0) {
+                String taskUrl = popUrl(DB);
+                //第六部分爬虫
+                if (taskUrl == null) {
+                    taskDone(DB);
+                    break;
+                }
+                CommentCrawler.craw(driver, taskUrl, DB);
             }
 
             try {

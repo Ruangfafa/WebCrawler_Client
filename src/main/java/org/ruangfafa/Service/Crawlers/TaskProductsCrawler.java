@@ -6,10 +6,12 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.ruangfafa.Model.Classificate;
 import org.ruangfafa.Model.ProductTag;
+import org.ruangfafa.Service.AbnormalProcessing;
 import org.ruangfafa.Service.ChromeDriver;
 import org.ruangfafa.Service.Identifiers.PageIdentify;
 
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,7 +27,7 @@ public class TaskProductsCrawler {
         ChromeDriver.waitForPageLoad(driver, DB);
         urlSupervision(driver,url);
         Matcher matcher;
-        try{Thread.sleep(1000);}catch(Exception _){}
+        try{Thread.sleep(2000);}catch(Exception _){}
         pageType = PageIdentify.classificatePageIdentify(driver);
         switch (pageType) {
             case "tb_c2c_1":
@@ -43,73 +45,54 @@ public class TaskProductsCrawler {
                     ));
                     tag = tagElement.getText().trim();
                 } catch (Exception e) {
-                    tag = "N/A";
-                    System.out.println("⚠️ 未找到 tag 元素，设置为 N/A");
-                }
-                while (true) {
-                    //在div class="J_TItems"中会包含若干div class="item4line1"，每个div class="item4line1"里又包含若干类似 dl class="item " data-id="940022115982",每个dl里又会包含一个span class="sale-num"，拿到这个span的gettext，保存到soldAmount，data-id保存到id
-                    // 获取所有 item4line1 区块
-                    List<WebElement> itemBlocks = driver.findElements(By.xpath("//div[@class='J_TItems']//div[contains(@class,'item4line1')]"));
-
-                    for (WebElement block : itemBlocks) {
-                        // 每个 block 下的所有商品 dl 元素
-                        List<WebElement> items = block.findElements(By.xpath(".//dl[contains(@class,'item ')]"));
-
-                        for (WebElement item : items) {
-                            try {
-                                // 获取 data-id
-                                String itemId = item.getAttribute("data-id").trim();
-
-                                // 获取销量
-                                WebElement saleNumElement = item.findElement(By.xpath(".//span[contains(@class,'sale-num')]"));
-                                String saleText = saleNumElement.getText().trim();
-
-                                // 存入变量，供后续写入数据库
-                                id = itemId;
-                                soldAmount = saleText;
-
-                                insertProductTag(DB, new ProductTag(pageType, identifier, id, soldAmount, tag));
-                            } catch (Exception e) {
-                                System.out.println("⚠️ 跳过一个商品，原因：" + e.getMessage());
-                            }
-                        }
-                    }
-                    insertProductTag(DB, new ProductTag(pageType, identifier, id, soldAmount, tag));
                     try {
-                        WebElement pagination = driver.findElement(By.className("pagination"));
-                        List<WebElement> links = pagination.findElements(By.tagName("a"));
+                        WebElement tagElement = driver.findElement(By.xpath(
+                                "//ul[contains(@class,'crumbSlide-con') and contains(@class,'clearfix') and contains(@class,'J_TCrumbSlideCon')]/li[contains(@class,'crumbAttr')]/a"
+                        ));
+                        tag = tagElement.getText().trim();
+                    } catch (Exception _){tag = "N/A";
+                        System.out.println("⚠️ 未找到 tag 元素，设置为 N/A");}
 
-                        boolean isLastPage = false;
-                        for (WebElement link : links) {
-                            if (link.getText().contains("下一页") && link.getAttribute("class").contains("disable")) {
-                                isLastPage = true;
-                                break;
-                            }
-                        }
+                }
 
-                        if (isLastPage) break;
+                AbnormalProcessing.driverBlocker(driver);
+                //在div class="J_TItems"中会包含若干div class="item4line1"，每个div class="item4line1"里又包含若干类似 dl class="item " data-id="940022115982",每个dl里又会包含一个span class="sale-num"，拿到这个span的gettext，保存到soldAmount，data-id保存到id
+                // 获取所有 item4line1 区块
+                WebElement pagination = driver.findElement(By.className("pagination"));
+                List<WebElement> children = driver.findElement(By.className("J_TItems"))
+                        .findElements(By.xpath("./div"));
 
-                        // 获取页码输入框
-                        WebElement pageInput = driver.findElement(By.xpath("//input[@name='pageNo']"));
-                        int currentPage = Integer.parseInt(pageInput.getAttribute("value").trim());
-                        int nextPage = currentPage + 1;
-
-                        // 清空并输入新页码
-                        pageInput.clear();
-                        pageInput.sendKeys(String.valueOf(nextPage));
-
-                        // 点击确定按钮
-                        WebElement submitButton = driver.findElement(By.xpath("//button[@type='submit' and contains(text(),'确定')]"));
-                        submitButton.click();
-
-                        // 等待加载（可替换为 WebDriverWait）
-                        ChromeDriver.waitForPageLoad(driver, DB);
-                        Thread.sleep(500);
-
-                    } catch (Exception e) {
-                        System.out.println("⚠️ 翻页异常，退出分页循环");
-                        break;
+                List<WebElement> itemBlocks = new ArrayList<>();
+                for (WebElement child : children) {
+                    if (child.equals(pagination)) break; // 分页之前的终止
+                    if (child.getAttribute("class").contains("item4line1")||child.getAttribute("class").contains("item5line1")) {
+                        itemBlocks.add(child);
                     }
+                }
+                System.out.println(itemBlocks.size()+"--");
+                for (WebElement block : itemBlocks) {
+                    // 每个 block 下的所有商品 dl 元素
+                    List<WebElement> items = block.findElements(By.xpath(".//dl[contains(@class,'item ')]"));
+
+                    for (WebElement item : items) {
+                        try {
+                            // 获取 data-id
+                            String itemId = item.getAttribute("data-id").trim();
+
+                            // 获取销量
+                            WebElement saleNumElement = item.findElement(By.xpath(".//span[contains(@class,'sale-num')]"));
+                            String saleText = saleNumElement.getText().trim();
+
+                            // 存入变量，供后续写入数据库
+                            id = itemId;
+                            soldAmount = saleText;
+
+                            insertProductTag(DB, new ProductTag(pageType, identifier, id, soldAmount, tag));
+                        } catch (Exception e) {
+                            System.out.println("⚠️ 跳过一个商品，原因：" + e.getMessage());
+                        }
+                    }
+
                 }
                 break;
             case "tb_global":
@@ -121,8 +104,5 @@ public class TaskProductsCrawler {
             case "jd_fs_922474":
                 break;
         }
-
-
-        insertProductTag(DB,new ProductTag(pageType,identifier,id,soldAmount,tag));
     }
 }

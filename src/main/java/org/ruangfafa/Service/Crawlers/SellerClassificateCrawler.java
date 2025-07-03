@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.ruangfafa.Service.AbnormalProcessing.solveSliderCaptcha;
 import static org.ruangfafa.Service.AbnormalProcessing.urlSupervision;
 import static org.ruangfafa.Service.DatabaseService.insertSellerClassificate;
 
@@ -26,7 +27,8 @@ public class SellerClassificateCrawler {
         driver.get(url);
         Matcher matcher;
         ChromeDriver.waitForPageLoad(driver, DB);
-        urlSupervision(driver,url);
+        urlSupervision(driver, url);
+        solveSliderCaptcha(driver);
         pageType = PageIdentify.searchPageIdentify(driver);
         switch (pageType) {
             case "tb_c2c_1":
@@ -55,13 +57,16 @@ public class SellerClassificateCrawler {
                             }
                             cName = link.getText().trim();
                             if (cName.isEmpty()) {
-                                cName = (String)((JavascriptExecutor) driver)
+                                cName = (String) ((JavascriptExecutor) driver)
                                         .executeScript("return arguments[0].textContent.trim();", link);
                             }
-                            insertSellerClassificate(DB, new Classificate(pageType, identifier, category_pv, cName));
-                        } catch (Exception ignored) {}
+                            if (!category_pv.equals("N/A"))
+                                insertSellerClassificate(DB, new Classificate(pageType, identifier, category_pv, cName));
+                        } catch (Exception ignored) {
+                        }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
 
                 // 属性分类处理
                 try {
@@ -97,11 +102,14 @@ public class SellerClassificateCrawler {
 
                                     cName = categoryName + "_:_" + text;
                                     insertSellerClassificate(DB, new Classificate(pageType, identifier, category_pv, cName));
-                                } catch (Exception ignored) {}
+                                } catch (Exception ignored) {
+                                }
                             }
-                        } catch (Exception ignored) {}
+                        } catch (Exception ignored) {
+                        }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
                 break;
             case "tb_global":
                 break;

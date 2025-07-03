@@ -1,9 +1,6 @@
 package org.ruangfafa.Service;
 
-import org.ruangfafa.Model.Classificate;
-import org.ruangfafa.Model.Product;
-import org.ruangfafa.Model.ProductTag;
-import org.ruangfafa.Model.Seller;
+import org.ruangfafa.Model.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -190,4 +187,19 @@ public class DatabaseService {
         }
         return 10; // 默认值（秒）
     }
+
+    public static void insertComment(Connection conn, Comment comment) {
+        String sql = "INSERT INTO ServerDB.Comment (pageType, id, `comment`, date, pattern) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, comment.getPageType());
+            stmt.setString(2, comment.getId());
+            stmt.setString(3, comment.getComment());
+            stmt.setDate(4, comment.getDate()); // 注意这里用的是 obj 给出的日期
+            stmt.setString(5, comment.getPattern());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            Logger.log("❌ 插入 Comment 数据失败: " + e.getMessage(), "DatabaseService.java");
+        }
+    }
+
 }
