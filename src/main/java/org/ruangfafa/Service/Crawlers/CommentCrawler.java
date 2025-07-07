@@ -101,17 +101,28 @@ public class CommentCrawler {
                     // 设置n天有效期过滤
                     long validDays = 365; // 设置有效期为180天
 
+                    int currentScrollAttempts = 0;
                     // 开始滚动评论区域并抓取评论
-                    while (keepScrolling) {
+                    crawC: while (keepScrolling) {
                         // 获取当前页面的评论
                         List<WebElement> comments = commentContainer.findElements(By.xpath(".//div[contains(@class,'Comment')]"));
                         System.out.println("[step13] 当前页面评论数：" + comments.size());
 
                         // 如果评论数量少于20条，且已经加载完所有评论，则结束抓取
+
                         if (comments.size() <= prevLoadedCount) {
-                            System.out.println("[step16] 无新评论，终止滚动");
-                            keepScrolling = false;
-                            break; // 退出循环，停止滚动
+                            currentScrollAttempts++; // 增加滑动尝试次数
+                            System.out.println("[step16] 无新评论，滑动尝试次数: " + currentScrollAttempts);
+
+                            // 如果滑动尝试次数已达到最大值，则停止滑动
+                            if (currentScrollAttempts >= 3) {
+                                System.out.println("[step16] 达到最大滑动尝试次数，终止滚动");
+                                keepScrolling = false;
+                                break; // 退出循环，停止滚动
+                            }
+                        } else {
+                            // 如果找到了新评论，则重置滑动尝试次数
+                            currentScrollAttempts = 0;
                         }
 
                         // 只处理新加载的评论
@@ -127,7 +138,7 @@ public class CommentCrawler {
 
                                 // 判断评论是否在有效期内（过去180天）
                                 if (commentDate.isBefore(today.minusDays(validDays))) {
-                                    continue; // 如果评论不在有效期内，跳过该评论
+                                    break crawC; // 如果评论不在有效期内，跳过该评论
                                 }
 
                                 // 提取评论的内容并插入数据库
@@ -139,7 +150,7 @@ public class CommentCrawler {
                                 insertComment(DB, new Comment(pageType, id, comment, pattern, date));
                                 System.out.println("[step15] 新评论插入成功: " + date + " | " + pattern + " | " + comment);
 
-                                try { Thread.sleep((long) (Math.random() * 500)); } catch (InterruptedException ignored) {}
+                                try { Thread.sleep((long) (Math.random() * 200)); } catch (InterruptedException ignored) {}
 
                             } catch (Exception innerEx) {
                                 System.out.println("[WARN] 单条评论处理失败：" + innerEx.getMessage());

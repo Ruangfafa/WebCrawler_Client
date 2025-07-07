@@ -101,4 +101,15 @@ public class PageIdentify {
         catch (Exception _) {}
         return "Error";
     }
+
+    public static String rankPageIdentify(WebDriver driver) {
+        String url = driver.getCurrentUrl();
+        try {
+            if (url.contains("huodong.taobao.com/wow/z/tbhome/tbpc-venue/")) {
+                return "tm";
+            }
+        }
+        catch (Exception _) {}
+        return "Error";
+    }
 }

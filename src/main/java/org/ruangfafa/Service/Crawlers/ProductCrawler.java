@@ -63,31 +63,6 @@ public class ProductCrawler {
                 }
 
                 try {
-                    org.openqa.selenium.WebElement priceWrap = driver.findElement(By.xpath(
-                            "//div[@id='ice-container']//div[@class='pageContentWrap']//div[contains(@class,'content')]//div[@id='purchasePanel']//div[contains(@class,'displayPrice')]//div[contains(@class,'priceWrap')]"
-                    ));
-                    try {
-                        org.openqa.selenium.WebElement origPrice = priceWrap.findElement(By.xpath(
-                                ".//div[contains(@class,'subPrice')]//span[contains(@class,'text')][2]"
-                        ));
-                        org.openqa.selenium.WebElement discPrice = priceWrap.findElement(By.xpath(
-                                ".//div[contains(@class,'highlightPrice')]//span[contains(@class,'text')]"
-                        ));
-                        orgnPrice = origPrice.getText().replace("¥", "").replace("￥", "").replace("起", "").trim();
-                        diskPrice = discPrice.getText().replace("¥", "").replace("￥", "").replace("起", "").trim();
-                    } catch (Exception e) {
-                        org.openqa.selenium.WebElement origPrice = priceWrap.findElement(By.xpath(
-                                ".//div[contains(@class,'highlightPrice')]//span[contains(@class,'text')]"
-                        ));
-                        orgnPrice = origPrice.getText().replace("¥", "").replace("￥", "").replace("起", "").trim();
-                        diskPrice = "No Discount";
-                    }
-                } catch (Exception e) {
-                    orgnPrice = "N/A";
-                    diskPrice = "N/A";
-                }
-
-                try {
                     WebElement titleElement = driver.findElement(By.xpath(
                             "//div[@id='ice-container']//div[contains(@class,'contentWrap')]//div[contains(@class,'ItemTitle')]//h1"
                     ));
@@ -314,17 +289,26 @@ public class ProductCrawler {
 
                             // 抓取点击后价格
                             try {
-                                WebElement priceWrap = driver.findElement(By.xpath(
-                                        "//div[@id='ice-container']//div[contains(@class,'priceWrap')]"));
-                                WebElement discPriceElem = priceWrap.findElement(By.xpath(
-                                        ".//div[contains(@class,'highlightPrice')]//span[contains(@class,'text')]"));
-                                diskPrice = discPriceElem.getText().replace("¥", "").replace("￥", "").replace("起", "").trim();
+                                org.openqa.selenium.WebElement priceWrap = driver.findElement(By.xpath(
+                                        "//div[@id='ice-container']//div[@class='pageContentWrap']//div[contains(@class,'content')]//div[@id='purchasePanel']//div[contains(@class,'displayPrice')]//div[contains(@class,'priceWrap')]"
+                                ));
                                 try {
-                                    WebElement origPriceElem = priceWrap.findElement(By.xpath(
-                                            ".//div[contains(@class,'subPrice')]//span[contains(@class,'text')][2]"));
-                                    orgnPrice = origPriceElem.getText().replace("¥", "").replace("￥", "").replace("起", "").trim();
-                                } catch (Exception ex) {
-                                    orgnPrice = diskPrice;
+                                    org.openqa.selenium.WebElement origPrice = priceWrap.findElement(By.xpath(
+                                            ".//div[contains(@class,'subPrice')]//span[contains(@class,'text')][2]"
+                                    ));
+                                    org.openqa.selenium.WebElement discPrice = priceWrap.findElement(By.xpath(
+                                            ".//div[contains(@class,'highlightPrice')]//span[contains(@class,'text')]"
+                                    ));
+                                    System.out.println("1");
+                                    orgnPrice = origPrice.getText().replace("¥", "").replace("￥", "").replace("起", "").trim();
+                                    diskPrice = discPrice.getText().replace("¥", "").replace("￥", "").replace("起", "").trim();
+                                } catch (Exception e) {
+                                    System.out.println("2");
+                                    org.openqa.selenium.WebElement origPrice = priceWrap.findElement(By.xpath(
+                                            ".//div[contains(@class,'highlightPrice')]//span[contains(@class,'text')]"
+                                    ));
+                                    orgnPrice = origPrice.getText().replace("¥", "").replace("￥", "").replace("起", "").trim();
+                                    diskPrice = "No Discount";
                                 }
                             } catch (Exception e) {
                                 orgnPrice = "N/A";

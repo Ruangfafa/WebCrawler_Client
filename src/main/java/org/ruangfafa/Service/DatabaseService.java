@@ -202,4 +202,18 @@ public class DatabaseService {
         }
     }
 
+    public static void insertTaskRanking(Connection conn, RankingProduct rankingProduct) {
+        String sql = "INSERT INTO ServerDB.TaskRanking (crawDate, rankName, id, `rank`, pageType) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDate(1, Date.valueOf(LocalDate.now()));
+            stmt.setString(2, rankingProduct.getRankName());
+            stmt.setString(3, rankingProduct.getId());
+            stmt.setString(4, rankingProduct.getRank());
+            stmt.setString(5, rankingProduct.getPageType());
+            stmt.executeUpdate();
+        }catch (SQLException e) {
+            Logger.log("❌ 插入 TaskRanking 数据失败: " + e.getMessage(), "DatabaseService.java");
+        }
+    }
+
 }

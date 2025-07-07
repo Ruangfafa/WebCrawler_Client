@@ -74,6 +74,7 @@ public class Application {
                 CommentCrawler.craw(driver, taskUrl, DB);
             }
 
+
             try {
                 Thread.sleep(5000); // 每次循环间隔5秒（可根据需要调整）
             } catch (InterruptedException e) {
